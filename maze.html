@@ -1,0 +1,470 @@
+<!doctype html>
+<html xmlns="http://www.w3.org/1999/html">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Canvas Maze Game</title>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #e0f7fa;
+            font-family: Arial, sans-serif;
+        }
+
+        #heading {
+            text-align: center;
+            margin: 15px auto;
+            font-size: 2.5em;
+            color: #ffffff;
+            background-color: #00796b;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        #maze {
+            text-align: center;
+            margin: 0 auto;
+        }
+
+        #canvas {
+            background: transparent; /* Set background to transparent */
+            display: block;
+            margin: 10px auto;
+            border: 5px solid #004d40;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        #timerel {
+            font-size: 1.5em;
+            margin: 10px auto;
+            color: #00796b;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+
+        .modal-content {
+            background-color: #ffffff;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 40%;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: #000;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .modal-header {
+            background-color: #00796b;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .modal-footer {
+            background-color: #f4bc42;
+            text-align: center;
+            padding: 10px;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .modal-footer h2 {
+            cursor: pointer;
+            color: #000;
+        }
+
+        .modal-footer h2:hover {
+            color: #d32f2f;
+        }
+    </style>
+</head>
+
+<body>
+    <section>
+        <div id="wrapper">
+            <h1 id="heading">Lost Path</h1>
+            <div id="maze">
+                <p style="text-align: center; margin-bottom: 10px; font-size: 1.2em;">Find the way out of the maze in 30 seconds!</p>
+                <div id="c" style="text-align: center; width: 10%; font-size: large;"></div>
+                <canvas id="canvas" width="523" height="523">
+                    This text is displayed if your browser does not support HTML5 Canvas.
+                </canvas>
+                <div id="timerel" style="text-align: center; width: 15%; font-size: large;"></div>
+            </div>
+
+            <!-- The Modal -->
+            <div id="myModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <span class="close">&times;</span>
+                        <h2 class="gamehead"></h2>
+                    </div>
+                    <div class="modal-footer">
+                        <h2 id="demo">Play Again?</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script type="text/javascript">
+            // Get the modal
+            var modal = document.getElementById('myModal');
+
+            // Get the <span> element that closes the modal
+            var span = document.getElementsByClassName("close")[0];
+
+            // When the user clicks the button, open the modal
+            modelfungo = function () {
+                modal.style.display = "block";
+                x = document.querySelector(".gamehead");
+                x.textContent = "Game Over";
+            }
+
+            modelfunwin = function () {
+                modal.style.display = "block";
+                x = document.querySelector(".gamehead");
+                x.textContent = "Congrats! You Win";
+            }
+
+            document.getElementById("demo").addEventListener("click", myFunction);
+
+            function myFunction() {
+                document.location.reload();
+            }
+
+            // When the user clicks on <span> (x), close the modal
+            span.onclick = function () {
+                modal.style.display = "none";
+            }
+
+            // When the user clicks anywhere outside of the modal, close it
+            window.onclick = function (event) {
+                if (event.target == modal) {
+                    modal.style.display = "none";
+                }
+            }
+
+            function startTimer(duration, display) {
+                var start = Date.now(),
+                    diff,
+                    minutes,
+                    seconds;
+
+                function timer() {
+                    if (playing) {
+                        diff = duration - (((Date.now() - start) / 1000) | 0);
+                        minutes = (diff / 60) | 0;
+                        seconds = (diff % 60) | 0;
+                        minutes = minutes < 10 ? "0" + minutes : minutes;
+                        seconds = seconds < 10 ? "0" + seconds : seconds;
+                        display.textContent = "Game ends in " + minutes + ":" + seconds;
+
+                        if (diff <= 0) {
+                            display.textContent = "Game Over";
+                            start = Date.now() + 1000;
+                            playing = false
+                            modelfungo();
+                        }
+                    }
+                }
+                timer();
+                setInterval(timer, 1000);
+            }
+
+            window.onload = function () {
+                twominutes = 30;
+                x = document.querySelector("#timerel");
+                startTimer(twominutes, x);
+            }
+            playing = true;
+            window.addEventListener('keydown', doKeyDown, true);
+
+            function doKeyDown(evt) {
+                var handled = false;
+                if (playing) {
+                    switch (evt.keyCode) {
+                        case 38:  /* Up arrow was pressed */
+                            m.moveup("canvas");
+                            handled = true;
+                            break;
+                        case 87:  /* Up arrow was pressed */
+                            m.moveup("canvas");
+                            handled = true;
+                            break;
+                        case 40:  /* Down arrow was pressed */
+                            m.movedown("canvas");
+                            handled = true;
+                            break;
+                        case 83:  /* Down arrow was pressed */
+                            m.movedown("canvas");
+                            handled = true;
+                            break;
+                        case 37:  /* Left arrow was pressed */
+                            m.moveleft("canvas");
+                            handled = true;
+                            break;
+                        case 65:  /* Left arrow was pressed */
+                            m.moveleft("canvas");
+                            handled = true;
+                            break;
+                        case 39:  /* Right arrow was pressed */
+                            m.moveright("canvas");
+                            handled = true;
+                            break;
+                        case 68:  /* Right arrow was pressed */
+                            m.moveright("canvas");
+                            handled = true;
+                            break;
+                    }
+                    if (m.checker("canvas"))
+                        playing = false;
+                }
+                if (handled)
+                    evt.preventDefault(); // prevent arrow keys from scrolling the page (supported in IE9+ and all other browsers)
+            }
+
+            var dsd = function (size) {
+                this.N = size;
+                this.P = new Array(this.N);
+                this.R = new Array(this.N);
+
+                this.init = function () {
+                    for (var i = 0; i < this.N; i++) {
+                        this.P[i] = i;
+                        this.R[i] = 0;
+                    }
+                }
+
+                this.union = function (x, y) {
+                    var u = this.find(x);
+                    var v = this.find(y);
+                    if (this.R[u] > this.R[v]) {
+                        this.R[u] = this.R[v] + 1;
+                        this.P[u] = v;
+                    } else {
+                        this.R[v] = this.R[u] + 1;
+                        this.P[v] = u;
+                    }
+                }
+
+                this.find = function (x) {
+                    if (x == this.P[x])
+                        return x;
+                    this.P[x] = this.find(this.P[x]);
+                    return this.P[x];
+                }
+            };
+
+            function random(min, max) { return (min + (Math.random() * (max - min))); };
+            function randomChoice(choices) { return choices[Math.round(random(0, choices.length - 1))]; };
+
+            var maze = function (X, Y) {
+                this.N = 2 * X + 1;
+                this.M = 2 * Y + 1;
+                this.Board = new Array(this.N);
+                this.DS = new dsd(X * Y);
+                this.S = 20;
+
+                this.init = function () {
+                    for (var i = 0; i < this.N; i++) {
+                        this.Board[i] = new Array(this.M);
+                        for (var j = 0; j < this.M; j++) {
+                            this.Board[i][j] = ' ';
+                        }
+                    }
+                    for (var i = 0; i < this.N; i++) {
+                        for (var j = 0; j < this.M; j++) {
+                            if (i % 2 == 0 && j % 2 == 0) {
+                                this.Board[i][j] = '#'; // Wall
+                            }
+                        }
+                    }
+                    var edges = [];
+                    for (var i = 0; i < this.N; i++) {
+                        for (var j = 0; j < this.M; j++) {
+                            if (i % 2 == 0 && j % 2 == 0) {
+                                if (i > 0) edges.push([i, j, i - 1, j]);
+                                if (j > 0) edges.push([i, j, i, j - 1]);
+                            }
+                        }
+                    }
+                    while (edges.length) {
+                        var index = Math.floor(Math.random() * edges.length);
+                        var edge = edges[index];
+                        edges.splice(index, 1);
+                        var a = edge[0] * this.M + edge[1];
+                        var b = edge[2] * this.M + edge[3];
+                        if (this.DS.find(a) != this.DS.find(b)) {
+                            this.DS.union(a, b);
+                            this.Board[edge[0]][edge[1]] = ' ';
+                            this.Board[edge[2]][edge[3]] = ' ';
+                        }
+                    }
+                };
+
+                this.draw_canvas = function (id) {
+                    this.canvas = document.getElementById(id);
+                    var scale = this.S;
+                    temp = [];
+                    if (this.canvas.getContext) {
+                        this.ctx = this.canvas.getContext('2d');
+                        this.Board[1][0] = '$'; // Starting point
+                        for (var i = 0; i < 2 * this.N + 1; i++) {
+                            for (var j = 0; j < 2 * this.M + 1; j++) {
+                                if (this.Board[i][j] != ' ') {
+                                    // Draw walls
+                                    this.ctx.fillStyle = "#0b052d"; // Wall color
+                                    this.ctx.fillRect(scale * i, scale * j, scale, scale);
+                                }
+                                // No else block needed; uncolored areas will remain transparent
+                            }
+                        }
+                        x = randomChoice(temp);
+                        this.Board[x[0]][x[1]] = '&'; // Start position
+                        this.ctx.fillStyle = "#c4192a"; // Start position color
+                        this.ctx.fillRect(scale * x[0], scale * x[1], scale, scale);
+                    }
+                };
+
+                this.moveclear = function (a, b) {
+                    var scale = this.S;
+                    this.ctx = this.canvas.getContext('2d');
+                    this.ctx.fillStyle = "#e27158"; // Red for walked path
+                    this.ctx.fillRect(scale * a, scale * b, scale, scale);
+                    this.Board[a][b] = ' ';
+                };
+
+                this.move = function (a, b) {
+                    var scale = this.S;
+                    this.ctx = this.canvas.getContext('2d');
+                    this.ctx.fillStyle = "#c4192a"; // Current position color
+                    this.ctx.fillRect(scale * a, scale * b, scale, scale);
+                    this.Board[a][b] = '&';
+                };
+
+                this.moveup = function (canvas) {
+                    var x, y;
+                    for (var i = 0; i < this.N; i++) {
+                        for (var j = 0; j < this.M; j++) {
+                            if (this.Board[i][j] == '&') {
+                                x = i;
+                                y = j;
+                                break;
+                            }
+                        }
+                    }
+                    if (x > 0 && this.Board[x - 1][y] == ' ') {
+                        this.moveclear(x, y);
+                        this.move(x - 1, y);
+                    }
+                };
+
+                this.movedown = function (canvas) {
+                    var x, y;
+                    for (var i = 0; i < this.N; i++) {
+                        for (var j = 0; j < this.M; j++) {
+                            if (this.Board[i][j] == '&') {
+                                x = i;
+                                y = j;
+                                break;
+                            }
+                        }
+                    }
+                    if (x < this.N - 1 && this.Board[x + 1][y] == ' ') {
+                        this.moveclear(x, y);
+                        this.move(x + 1, y);
+                    }
+                };
+
+                this.moveleft = function (canvas) {
+                    var x, y;
+                    for (var i = 0; i < this.N; i++) {
+                        for (var j = 0; j < this.M; j++) {
+                            if (this.Board[i][j] == '&') {
+                                x = i;
+                                y = j;
+                                break;
+                            }
+                        }
+                    }
+                    if (y > 0 && this.Board[x][y - 1] == ' ') {
+                        this.moveclear(x, y);
+                        this.move(x, y - 1);
+                    }
+                };
+
+                this.moveright = function (canvas) {
+                    var x, y;
+                    for (var i = 0; i < this.N; i++) {
+                        for (var j = 0; j < this.M; j++) {
+                            if (this.Board[i][j] == '&') {
+                                x = i;
+                                y = j;
+                                break;
+                            }
+                        }
+                    }
+                    if (y < this.M - 1 && this.Board[x][y + 1] == ' ') {
+                        this.moveclear(x, y);
+                        this.move(x, y + 1);
+                    }
+                };
+
+                this.checker = function (canvas) {
+                    var x, y;
+                    for (var i = 0; i < this.N; i++) {
+                        for (var j = 0; j < this.M; j++) {
+                            if (this.Board[i][j] == '&') {
+                                x = i;
+                                y = j;
+                                break;
+                            }
+                        }
+                    }
+                    if (x == this.N - 2 && y == this.M - 1) {
+                        modelfunwin();
+                        return true;
+                    }
+                    return false;
+                };
+            }
+
+            var m = new maze(10, 10);
+            m.init();
+            m.draw_canvas("canvas");
+        </script>
+    </section>
+</body>
+
+</html>
